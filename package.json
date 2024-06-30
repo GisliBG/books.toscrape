@@ -1,0 +1,29 @@
+{
+	"name": "web-crawler",
+	"version": "1.0.0",
+	"description": "Should download and save all files from https://books.toscrape.com/",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "rimraf ./dist && tsc",
+		"start": "node dist/index.js",
+		"start:dev": "npx nodemon",
+		"test": "test"
+	},
+	"keywords": [
+		"crawler",
+		"toscrape"
+	],
+	"author": "GisliBG",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^1.7.2",
+		"cheerio": "^1.0.0-rc.12"
+	},
+	"devDependencies": {
+		"@types/node": "^20.14.9",
+		"nodemon": "^3.1.4",
+		"rimraf": "^5.0.7",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.5.2"
+	}
+}
