@@ -1,9 +1,7 @@
-import axios from "axios";
+import fetch from "./fetch";
 import { load } from "cheerio";
 import * as fs from "fs";
 import path from "path";
-
-const booksToScrapeURL = "https://books.toscrape.com/";
 
 function directoryIsMissing(directory: string) {
 	return !fs.existsSync(directory);
@@ -38,15 +36,15 @@ function weHaveUnvisitedLinks(links: Map<string, boolean>) {
 }
 
 async function start() {
-	const page = await axios.get(booksToScrapeURL);
+	const page = await fetch.page("./index.html");
 
 	const directory = "./books";
 	if (directoryIsMissing(directory)) {
 		createDirectory(directory);
 	}
-	writeFileToDirectory(`${directory}/index.html`, page.data);
+	writeFileToDirectory(`${directory}/index.html`, page);
 
-	const $ = load(page.data);
+	const $ = load(page);
 	const linkObjects = $("a");
 
 	const links = new Map<string, boolean>([["index.html", true]]);
@@ -60,10 +58,10 @@ async function start() {
 	while (weHaveUnvisitedLinks(links)) {
 		for (const [key, value] of links) {
 			if (!value) {
-				const page = await axios.get(`${booksToScrapeURL}${key}`);
-				writeFileToDirectory(`./books/${key}`, page.data);
+				const page = await fetch.page(key);
+				writeFileToDirectory(`./books/${key}`, page);
 				links.set(key, true);
-				const $ = load(page.data);
+				const $ = load(page);
 				$("a").each((index, element) => {
 					const href = $(element).attr("href");
 
