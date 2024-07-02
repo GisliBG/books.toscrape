@@ -1,6 +1,7 @@
 import fetch from "./fetch";
-import { load } from "cheerio";
+
 import filehandler from "./filehandler";
+import pagehandler from "./pagehandler";
 
 function weHaveUnvisitedLinks(links: Map<string, boolean>) {
 	for (const value of links.values()) {
@@ -41,14 +42,9 @@ async function start() {
 					}
 				});
 
-				const $ = load(page);
-				$("a").each((index, element) => {
-					const href = $(element).attr("href");
-
-					if (href) {
-						const absolutUrl = new URL(href, link).href;
-						if (!links.has(absolutUrl)) links.set(absolutUrl, false);
-					}
+				pagehandler.findLinks(page, (href) => {
+					const absolutUrl = new URL(href, link).href;
+					if (!links.has(absolutUrl)) links.set(absolutUrl, false);
 				});
 			});
 		} catch (error) {
