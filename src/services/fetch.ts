@@ -10,9 +10,7 @@ export function splitToChunks<T>(items: T[], chunkSize: number = 50) {
 }
 
 async function pages(paths: string[]) {
-	const requests = paths.map((path) =>
-		axios.get<string>(path, { timeout: 10000 })
-	);
+	const requests = paths.map((path) => axios.get<string>(path));
 	const chunks = splitToChunks(requests);
 	const results: string[] = [];
 	for (const chunk of chunks) {
@@ -26,13 +24,12 @@ async function pages(paths: string[]) {
 }
 
 async function images(paths: string[]) {
-	const requests = paths.map((path) =>
-		axios.get<stream.Readable>(path, {
-			timeout: 10000,
+	const requests = paths.map((path) => {
+		return axios.get<stream.Readable>(path, {
 			responseType: "stream",
-		})
-	);
-	const chunks = splitToChunks(requests);
+		});
+	});
+	const chunks = splitToChunks(requests, 20);
 	const results: stream.Readable[] = [];
 	for (const chunk of chunks) {
 		const responses = await Promise.all(chunk);
