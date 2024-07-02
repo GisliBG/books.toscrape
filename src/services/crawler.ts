@@ -16,6 +16,7 @@ async function start() {
 	const links = new Map<string, boolean>([
 		["https://books.toscrape.com/index.html", false],
 	]);
+	const images: string[] = [];
 	while (weHaveUnvisitedLinks(links)) {
 		const unvisitedLinks: string[] = [];
 		for (const [key, value] of links) {
@@ -38,7 +39,7 @@ async function start() {
 						);
 						links.set(unvisitedLinks[index], false);
 					} else {
-						console.log("Succesfully saved page", unvisitedLinks[index]);
+						//console.log("Succesfully saved page", unvisitedLinks[index]);
 					}
 				});
 
@@ -46,11 +47,26 @@ async function start() {
 					const absolutUrl = new URL(href, link).href;
 					if (!links.has(absolutUrl)) links.set(absolutUrl, false);
 				});
+				pagehandler.findImages(page, (src) => {
+					const absolutUrl = new URL(src, link).href;
+					if (!images.includes(absolutUrl)) {
+						images.push(absolutUrl);
+					}
+				});
 			});
 		} catch (error) {
 			console.log(error);
 		}
 	}
+	console.log("Downloading images");
+
+	const imgstream = await fetch.images(images);
+
+	await filehandler.saveStreams(images, imgstream);
+
+	// imgstreams.forEach((stream) => {
+	// 	filehandler.saveStream(stream);
+	// });
 	console.log("All done!");
 }
 
