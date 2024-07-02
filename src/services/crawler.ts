@@ -16,17 +16,28 @@ async function start() {
 		["https://books.toscrape.com/index.html", false],
 	]);
 	while (weHaveUnvisitedLinks(links)) {
+		const unvisitedLinks: string[] = [];
 		for (const [key, value] of links) {
 			if (!value) {
-				const page = await fetch.page(key);
-				links.set(key, true);
+				unvisitedLinks.push(key);
+			}
+		}
 
-				filehandler.save(key, page, (err) => {
+		try {
+			const pages = await fetch.pages(unvisitedLinks);
+			pages.forEach((page, index) => {
+				const link = unvisitedLinks[index];
+				links.set(link, true);
+
+				filehandler.save(unvisitedLinks[index], page, (err) => {
 					if (err) {
-						console.log("There was an error saving page", key);
-						links.set(key, false);
+						console.log(
+							"There was an error saving page",
+							unvisitedLinks[index]
+						);
+						links.set(unvisitedLinks[index], false);
 					} else {
-						console.log("Succesfully saved page", key);
+						console.log("Succesfully saved page", unvisitedLinks[index]);
 					}
 				});
 
@@ -34,12 +45,14 @@ async function start() {
 				$("a").each((index, element) => {
 					const href = $(element).attr("href");
 
-					if (href && !links.has(href)) {
-						const absolutUrl = new URL(href, key).href;
-						links.set(absolutUrl, false);
+					if (href) {
+						const absolutUrl = new URL(href, link).href;
+						if (!links.has(absolutUrl)) links.set(absolutUrl, false);
 					}
 				});
-			}
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 	console.log("All done!");
