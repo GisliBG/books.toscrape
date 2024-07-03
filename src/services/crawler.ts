@@ -12,7 +12,11 @@ function weHaveUnvisitedLinks(links: Map<string, boolean>) {
 	return false;
 }
 
-async function start() {
+async function start(
+	onError: (message: string) => void,
+	onProgressUpdate: (message: string) => void,
+	onSuccess: () => void
+) {
 	const links = new Map<string, boolean>([
 		["https://books.toscrape.com/index.html", false],
 	]);
@@ -27,15 +31,16 @@ async function start() {
 
 		try {
 			const pages = await fetch.pages(unvisitedLinks);
+			onProgressUpdate(`succesfully fetched ${pages.length} pages`);
 			pages.forEach((page, index) => {
 				const link = unvisitedLinks[index];
 				links.set(link, true);
 
 				filehandler.save(unvisitedLinks[index], page, (err) => {
 					if (err) {
-						console.log(
-							"There was an error saving page",
-							unvisitedLinks[index]
+						onError(
+							`There was an error saving page
+							${unvisitedLinks[index]}`
 						);
 						links.set(unvisitedLinks[index], false);
 					} else {
@@ -45,7 +50,9 @@ async function start() {
 
 				pagehandler.findLinks(page, (href) => {
 					const absolutUrl = new URL(href, link).href;
-					if (!links.has(absolutUrl)) links.set(absolutUrl, false);
+					if (!links.has(absolutUrl)) {
+						links.set(absolutUrl, false);
+					}
 				});
 				pagehandler.findImages(page, (src) => {
 					const absolutUrl = new URL(src, link).href;
@@ -58,16 +65,30 @@ async function start() {
 			console.log(error);
 		}
 	}
-	console.log("Downloading images");
+	onProgressUpdate("Downloading images");
+	try {
+		const imgstream = await fetch.streams(images);
 
-	const imgstream = await fetch.images(images);
+		await filehandler.saveStreams(images, imgstream);
+	} catch (error) {
+		onError(`Problem downloading images`);
+	}
 
-	await filehandler.saveStreams(images, imgstream);
+	onProgressUpdate("Downloading css");
+	try {
+		const cssStream = await fetch.streams([
+			"https://books.toscrape.com/static/oscar/css/styles.css",
+		]);
 
-	// imgstreams.forEach((stream) => {
-	// 	filehandler.saveStream(stream);
-	// });
-	console.log("All done!");
+		await filehandler.saveStreams(
+			["https://books.toscrape.com/static/oscar/css/styles.css"],
+			cssStream
+		);
+	} catch (error) {
+		onError(`Problem downloading images`);
+	}
+
+	onSuccess();
 }
 
 export default {

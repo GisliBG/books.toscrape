@@ -69,11 +69,17 @@ describe("fetching data", () => {
 
 	test("spliting in chunks", () => {
 		// Should split array of 500 into 10 chunks of size 50;
-		const req = Array.from({ length: 500 }, () => "test");
+		const req = Array.from(
+			{ length: 500 },
+			() =>
+				new Promise((resolve) => {
+					resolve("test");
+				})
+		);
 		const chunks = splitToChunks(req, 50);
 		expect(chunks.length).toBe(10);
 		// Should also split uneven chunks so that the last array has the remaining items
-		req.push("test");
+		req.push(new Promise((resolve) => resolve("test")));
 		expect(req.length).toBe(501);
 		const unEvenChunks = splitToChunks(req, 20);
 		expect(unEvenChunks.length).toBe(26);

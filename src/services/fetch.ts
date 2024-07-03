@@ -1,10 +1,11 @@
 import axios from "axios";
 import * as stream from "stream";
 
-export function splitToChunks<T>(items: T[], chunkSize: number = 50) {
+export function splitToChunks<T>(items: Promise<T>[], chunkSize: number = 50) {
 	const result = [];
 	for (let i = 0; i < items.length; i += chunkSize) {
-		result.push(items.slice(i, i + chunkSize));
+		const chunk = items.slice(i, i + chunkSize);
+		result.push(chunk);
 	}
 	return result;
 }
@@ -23,7 +24,7 @@ async function pages(paths: string[]) {
 	return results;
 }
 
-async function images(paths: string[]) {
+async function streams(paths: string[]) {
 	const requests = paths.map((path) => {
 		return axios.get<stream.Readable>(path, {
 			responseType: "stream",
@@ -40,4 +41,4 @@ async function images(paths: string[]) {
 	return results;
 }
 
-export default { pages, images };
+export default { pages, streams };

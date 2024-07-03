@@ -6,8 +6,13 @@ function main() {
 	console.log("Press q to quit!");
 	cli.confirm(
 		function () {
-			console.log("starting");
-			crawler.start();
+			crawler.start(
+				(errorMessage) => {
+					console.log(errorMessage);
+				},
+				(progressMessage) => console.log(progressMessage),
+				() => console.log("All done press q to quit!")
+			);
 		},
 		function () {
 			process.exit();
