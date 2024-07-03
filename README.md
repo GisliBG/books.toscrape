@@ -24,3 +24,5 @@ After each Link has been found we download all the images we found on the way an
 our local copy looks nice.
 
 For optimzation we fetch the pages in chunks of parallel requests.
+
+The local copy of the books.toscrape.com will be stored in a folder named files in the root of the project.
